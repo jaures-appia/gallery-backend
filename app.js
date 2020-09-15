@@ -8,7 +8,7 @@ const morgan = require('morgan')('dev')
 app = express()
 const port = process.env.PORT || 8000
 
-// const stuffRoutes = require('./routes/stuffs')
+const photoRoutes = require('./routes/photos')
 const userRoutes = require('./routes/users')
 
 app.get('/', (req, res) => {
@@ -29,9 +29,12 @@ useUnifiedTopology: true })
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
   
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
+app.use('/api/v1/photo', photoRoutes)
 app.use('/api/v1/auth', userRoutes)
 
 app.listen(port, console.log('starting ' + port))

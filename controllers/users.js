@@ -50,3 +50,124 @@ exports.getOneUser = (req, res, next) => {
     })
     .catch(error => res.status(401).json({ error }))
 }
+
+exports.getAllUsers = (req, res, next) => {
+  User.find().sort({created_at:-1})
+    .then((users) => {
+      res.status(201).json(users)
+    })
+    .catch(error => res.status(401).json({ error }))
+}
+
+exports.modifyUser = (req, res, next) => {
+
+  User.findOne({ _id: req.params.id })
+      .then(data => {
+        if (!data) {
+          return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+        }
+        
+        if(data.password == req.body.password){
+          let user = new User({
+            _id: req.params.id,
+            email: req.body.email,
+            password: req.body.password,
+            username: req.body.username,
+            avatar: req.body.avatar,
+          })
+          User.updateOne({_id: req.params.id}, user)
+          .then(() => {
+              res.status(201).json({
+                message: 'Thing updated successfully!'
+              });
+            })
+          .catch(
+          (error) => {
+            res.status(401).json({
+              error: error
+            });
+          })
+        }else{
+          bcrypt.hash(req.body.password, 10)
+          .then(hash => {
+            let user = new User({
+              _id: req.params.id,
+              email: req.body.email,
+              password: hash,
+              username: req.body.username,
+              avatar: req.body.avatar,
+            })
+            User.updateOne({_id: req.params.id}, user)
+          .then(() => {
+              res.status(201).json({
+                message: 'user updated successfully!'
+              });
+            })
+          .catch(
+          (error) => {
+            res.status(401).json({
+              error: error
+            });
+          })
+          })
+          .catch(error => res.status(500).json({ error }));
+        }
+      })
+      .catch(error => res.status(500).json({ error }));
+
+ 
+}
+
+exports.desactivateUser = (req, res, next) => {
+  User.findOne({ _id: req.params.id })
+    .then(data => {
+      if (!data) {
+        return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+      }
+      // const user = new User({
+      //   _id: req.params.id,
+      //   email: data.email,
+      //   password: hash,
+      //   username: req.body.username,
+      //   avatar: req.body.avatar,
+      // })
+      User.updateOne({_id: req.params.id}, {isActif: false})
+      .then(() => {
+          res.status(201).json({
+            message: 'user desactivate successfully!'
+          });
+        })
+      .catch(
+      (error) => {
+        res.status(401).json({
+          error: error
+        });
+      })
+      
+    })
+    .catch(error => res.status(500).json({ error }));
+}
+
+exports.activateUser = (req, res, next) => {
+  User.findOne({ _id: req.params.id })
+    .then(data => {
+      if (!data) {
+        return res.status(401).json({ error: 'Utilisateur non trouvé !' });
+      }
+      
+      User.updateOne({_id: req.params.id}, {isActif: true})
+      .then(() => {
+          res.status(201).json({
+            message: 'user activate successfully!'
+          });
+        })
+      .catch(
+      (error) => {
+        res.status(401).json({
+          error: error
+        });
+      })
+      
+    })
+    .catch(error => res.status(500).json({ error }));
+}
